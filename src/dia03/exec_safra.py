@@ -15,10 +15,10 @@ BASE_DIR = os.path.dirname( SRC_DIR )
 DATA_DIR = os.path.join( BASE_DIR, 'data' )
 
 
-def import_query(path, **kwards):
-    with open( path, 'r', **kwards ) as file_open:
+def import_query(path, **kwargs):
+    with open( path, 'r', **kwargs ) as file_open:
         result = file_open.read()
-    return result
+        return result
 
 def connect_db():
     return sqlalchemy.create_engine( 'sqlite:///' + os.path.join( DATA_DIR, 'olist.db' ) )
