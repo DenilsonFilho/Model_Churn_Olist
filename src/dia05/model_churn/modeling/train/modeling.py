@@ -13,4 +13,16 @@ conn = engine.connect()
 
 abt = pd.read_sql_table('tb_abt_churn', conn)
 
-print(abt.groupby(['seller_state'])['flag_churn'].mean())
+df_oot = abt[ abt['dt_ref'] == abt['dt_ref'].max() ].copy() # Filtrando base out of time
+
+df_abt = abt[ abt['dt_ref'] < abt['dt_ref'].max() ].copy()
+
+target = 'flag_churn'
+
+to_remove = ['dt_ref', 'seller_city', 'seller_state', 'seller_id', target] 
+
+features = df_abt.columns.tolist()
+
+for f in to_remove:
+    features.remove( f )
+    
