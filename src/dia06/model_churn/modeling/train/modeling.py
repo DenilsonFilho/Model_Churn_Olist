@@ -20,7 +20,7 @@ df_oot = abt[ abt['dt_ref'] == abt['dt_ref'].max() ].copy() # Filtrando base out
 df_abt = abt[ abt['dt_ref'] < abt['dt_ref'].max() ].copy()
 
 target = 'flag_churn'
-to_remove = ['dt_ref', 'seller_city', 'seller_state', 'seller_id', target] 
+to_remove = ['dt_ref', 'seller_city', 'seller_id', target] 
 features = df_abt.columns.tolist()
 for f in to_remove:
     features.remove( f )
