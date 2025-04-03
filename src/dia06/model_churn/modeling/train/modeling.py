@@ -11,7 +11,7 @@ TRAIN_DIR = os.path.dirname( os.path.abspath( __file__ ) )
 MODELING_DIR = os.path.dirname( TRAIN_DIR )
 BASE_DIR = os.path.dirname( MODELING_DIR )
 DATA_DIR = os.path.join( os.path.dirname( os.path.dirname( os.path.dirname( BASE_DIR ))), 'data')
-
+MODELS_DIR  = os.path.join( BASE_DIR, 'models')
 engine = sqlalchemy.create_engine( 'sqlite:///' + os.path.join( DATA_DIR, 'olist.db' ) )
 conn = engine.connect()
 
@@ -59,7 +59,8 @@ pd.Series(clf.feature_importances_, index=df_train.columns).sort_values(ascendin
 # Analise na base de treino
 
 y_train_pred = clf.predict(df_train)
-print('Base Treino:', metrics.accuracy_score(y_train, y_train_pred))
+acc_train = metrics.accuracy_score(y_train, y_train_pred)
+print('Base Treino:', acc_train)
 
 # Analise na base de teste
 onehot_df_test = pd.DataFrame(onehot.transform( X_test[cat_features] ), 
@@ -67,7 +68,8 @@ onehot_df_test = pd.DataFrame(onehot.transform( X_test[cat_features] ),
 df_predict = pd.concat([X_test[num_features], onehot_df_test], axis=1)
 df_predict = df_predict.rename(str, axis='columns')
 y_test_pred = clf.predict(df_predict)
-print('Base test:', metrics.accuracy_score(y_test, y_test_pred))
+acc_test = metrics.accuracy_score(y_test, y_test_pred)
+print('Base test:', acc_test)
 
 # Analise na base de out of time
 df_oot.reset_index(drop=True, inplace=True)
@@ -76,7 +78,8 @@ onehot_df_oot = pd.DataFrame(onehot.transform( df_oot[cat_features] ),
 df_predict_oot = pd.concat([df_oot[num_features], onehot_df_oot], axis=1)
 df_predict_oot = df_predict_oot.rename(str, axis='columns')
 oot_pred = clf.predict(df_predict_oot)
-print('Base out of time:', metrics.accuracy_score(df_oot[target], oot_pred))
+acc_oot = metrics.accuracy_score(df_oot[target], oot_pred)
+print('Base out of time:', acc_oot)
 
 # Fazendo o predict
 df_abt_onehot = pd.DataFrame(onehot.transform( abt[cat_features] ), 
@@ -87,3 +90,20 @@ df_abt_predict = df_abt_predict.rename(str, axis='columns')
 probs = clf.predict_proba(df_abt_predict)
 
 abt['score_churn'] = probs = clf.predict_proba(df_abt_predict)[:,1]
+abt_score = abt[['dt_ref','seller_id', 'score_churn']]
+#abt_score.to_sql('tb_churn_score', conn, index=False, if_exists='replace')
+
+# Salvando o modelo
+
+model_data = pd.Series( {
+    'num_features': num_features,
+    'cat_features': cat_features,
+    'onehot': onehot,
+    'features_fit': features_fit,
+    'model': clf,
+    'acc_oot': acc_oot,
+    'acc_train': acc_train,
+    'acc_test': acc_test
+} )
+
+model_data.to_pickle(os.path.join(MODELS_DIR, 'arvore_decisao.pkl'))
